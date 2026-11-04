@@ -1,0 +1,231 @@
+
+% Capítulo de estado del arte actualizado a partir de los seis articulos
+% completos proporcionados por el usuario.
+% Puede incorporarse en una tesis con clase book o report.
+
+\chapter{Estado del arte}
+\label{chap:estado_arte}
+
+\section{Introducción}
+
+El problema de enrutamiento de vehículos, conocido como \textit{Vehicle Routing Problem} (VRP), constituye una familia de problemas de optimización combinatoria cuyo propósito general es determinar cómo asignar los clientes a los vehículos y en qué orden deben visitarse, con el objetivo de satisfacer las demandas y minimizar los costos asociados a la distribución. En las aplicaciones reales, las decisiones de enrutamiento suelen estar condicionadas por restricciones temporales, características de los vehículos, propiedades de los productos transportados y condiciones particulares de la operación.
+
+La literatura ha estudiado estas características mediante diferentes extensiones del VRP. Entre ellas se encuentran los problemas con ventanas de tiempo, las flotas heterogéneas y limitadas, el transporte explícito de múltiples productos, los vehículos con compartimentos, los sistemas con múltiples depósitos y los modelos que incorporan el consumo de combustible o energía. Sin embargo, cada extensión introduce decisiones y restricciones específicas, por lo que la combinación de varias de ellas no puede tratarse simplemente como la suma independiente de modelos aislados.
+
+Este capítulo revisa seis trabajos consultados en texto completo que resultan especialmente relevantes para la investigación: los estudios de Afshar-Nadjafi y Afshar-Nadjafi sobre flota heterogénea, múltiples depósitos y ventanas estrictas; de Fermín Cueto y colaboradores sobre múltiples viajes, ventanas de tiempo, dimensionamiento de flota y localización de depósitos; de Ko\c{c} y colaboradores sobre flotas heterogéneas; de Gu y colaboradores sobre múltiples commodities; de Ostermeier y colaboradores sobre vehículos con múltiples compartimentos; y de Garside y colaboradores sobre enrutamiento verde. A partir de ellos se identifican los elementos que pueden sustentar el modelo y el procedimiento heurístico de la presente investigación.
+
+\section{Problema de enrutamiento de vehículos con ventanas de tiempo}
+\label{sec:vrptw}
+
+El \textit{Vehicle Routing Problem with Time Windows} (VRPTW) incorpora restricciones que delimitan el intervalo durante el cual cada cliente puede recibir el servicio. En consecuencia, la factibilidad de una ruta depende tanto de la secuencia de visitas y de los tiempos de desplazamiento como de los horarios establecidos para los clientes.
+
+Afshar-Nadjafi y Afshar-Nadjafi estudian una variante dependiente del tiempo del problema de múltiples depósitos con ventanas de tiempo y flota heterogénea. En el modelo considerado, las ventanas de los clientes son estrictas: si un vehículo llega antes de su apertura debe esperar, mientras que la atención debe respetar el intervalo temporal establecido. Además, el tiempo de viaje entre dos ubicaciones depende del instante de salida. Los autores presentan una formulación de programación lineal entera mixta y un procedimiento heurístico constructivo seguido de tres operadores de búsqueda local \cite{afshar2017}.
+
+Para representar la restricción temporal, sea $[a_i,b_i]$ la ventana del cliente $i$, donde $a_i$ es el instante más temprano permitido para comenzar el servicio y $b_i$ el último instante permitido. Sea $S_i$ el instante de inicio del servicio y $s_i$ su duración. Si $i$ y $j$ son clientes consecutivos de una ruta y $\tau_{ij}$ es el tiempo de viaje entre ellos, la propagación temporal puede expresarse mediante:
+
+\begin{equation}
+S_j \geq S_i+s_i+\tau_{ij}.
+\label{eq:propagacion_tiempo}
+\end{equation}
+
+Cada cliente debe cumplir, además,
+
+\begin{equation}
+a_i \leq S_i \leq b_i.
+\label{eq:ventana_estricta}
+\end{equation}
+
+Si el vehículo llega antes de $a_j$, el comienzo efectivo del servicio puede retrasarse hasta ese instante. Por tanto, una forma equivalente de expresar la propagación, considerando la espera, es:
+
+\begin{equation}
+S_j \geq \max\{a_j,\,S_i+s_i+\tau_{ij}\}.
+\label{eq:espera_tiempo}
+\end{equation}
+
+En el modelo de esta investigación, las ventanas de tiempo son datos de entrada predefinidos y no decisiones que deba determinar el algoritmo. Se adopta la convención de que el servicio debe comenzar dentro de $[a_i,b_i]$, aunque su finalización pueda ocurrir después de $b_i$. Esta convención debe mantenerse de forma coherente en la evaluación de factibilidad. Si la aplicación exigiera que el servicio concluyera antes del cierre, sería necesario sustituir la restricción superior por $S_i+s_i\leq b_i$.
+
+También es importante distinguir entre ventanas estrictas y tiempos de viaje dependientes del momento de salida. El trabajo de Afshar-Nadjafi y Afshar-Nadjafi incorpora ambas características, pero no son equivalentes: la primera establece cuándo puede comenzar el servicio y la segunda modifica la duración del desplazamiento según la hora. Por consiguiente, la presente investigación puede utilizar ventanas estrictas con tiempos de viaje constantes si esos son los datos disponibles; la dependencia temporal del viaje solo debe incorporarse si la información de tráfico o de operación la justifica.
+
+La restricción temporal afecta directamente a los procedimientos de agrupación e insercion de clientes. La cercanía geográfica no garantiza que dos clientes puedan atenderse consecutivamente, pues sus ventanas, tiempos de servicio y tiempos de desplazamiento pueden hacer inviable la secuencia. Por ello, la factibilidad temporal debe comprobarse durante la construcción de las rutas y después de cada movimiento de mejora.
+
+\section{Enrutamiento con flota heterogénea y disponibilidad limitada}
+\label{sec:flota_heterogenea}
+
+En el VRP clasico suele suponerse que todos los vehículos tienen la misma capacidad y estructura de costos. En cambio, una flota heterogénea esta compuesta por vehículos con características diferentes, por ejemplo, capacidades, costos fijos, costos variables o condiciones de operación.
+
+Ko\c{c}, Bekta\c{s}, Jabali y Laporte presentan una revisión de treinta años de investigación sobre el enrutamiento con flota heterogénea. Los autores distinguen dos formulaciones principales: el problema de tamaño y composición de flota, en el que se dispone de una cantidad potencialmente ilimitada de vehículos de cada tipo, y el problema de flota heterogénea fija, en el que la disponibilidad de vehículos esta predeterminada. La revisión también clasifica las variantes que incorporan ventanas de tiempo y compara los métodos metaheuristicos propuestos para esta familia de problemas \cite{koc2016}.
+
+Esta distinción es relevante para la presente investigación. Como el número de vehículos disponibles de cada tipo esta limitado, el problema se aproxima conceptualmente a un VRP con flota heterogénea fija, y no a una variante en la que el algoritmo pueda seleccionar libremente una cantidad ilimitada de vehículos de cada categoría. En consecuencia, no basta con encontrar una ruta factible para cada grupo de clientes: también debe comprobarse que la asignación conjunta no utilice más vehículos de los que realmente existen.
+
+El trabajo de Afshar-Nadjafi y Afshar-Nadjafi complementa esta perspectiva al considerar vehículos de diferentes tipos, con capacidades y costos distintos, dentro de un escenario con múltiples depósitos y ventanas estrictas. Su heurística construye primero una secuencia priorizada de clientes; luego asigna tipos de vehículos, construye rutas, determina los depósitos de inicio y final y aplica busquedas locales. En la asignación, la capacidad remanente de los tipos de vehículos ya utilizados influye en las probabilidades de selección, y la construcción de rutas verifica capacidad y factibilidad temporal \cite{afshar2017}.
+
+La heterogeneidad debe incorporarse también en la función objetivo. La elección de un vehículo no depende exclusivamente de su capacidad: deben considerarse sus costos fijos y variables, su posición inicial, su consumo energético y la compatibilidad entre su configuración de carga y los productos solicitados. Por tanto, la asignación de vehículos y la construcción de rutas son decisiones estrechamente relacionadas.
+
+\section{Enrutamiento con múltiples productos o \textit{commodities}}
+\label{sec:multi_commodity}
+
+En muchos modelos tradicionales de enrutamiento, la demanda de un cliente se representa mediante una cantidad agregada, por ejemplo, peso o volumen. Esta simplificación es adecuada cuando los productos pueden transportarse conjuntamente sin restricciones particulares. Sin embargo, puede resultar insuficiente cuando existen diferencias entre los productos que afectan la forma en que deben almacenarse, manipularse o transportarse.
+
+Gu y colaboradores presentan una revisión de los problemas de enrutamiento con múltiples commodities. Los autores explican que los productos deben modelarse explícitamente cuando su agregación puede generar soluciones inviables o suboptimas. Su revisión distingue entre commodities compatibles e incompatibles. Los compatibles pueden transportarse simultáneamente sin necesidad de separación especial; los incompatibles no pueden compartir el mismo vehículo o, en el caso de vehículos compartimentados, el mismo compartimento. La incompatibilidad puede gestionarse mediante compartimentos separados o mediante viajes diferentes del mismo vehículo, cuando la variante del problema permite múltiples viajes \cite{gu2024}.
+
+Esta distinción determina como debe representarse la demanda de cada cliente. En lugar de utilizar solamente una demanda total $d_i$, conviene representar la demanda del cliente $i$ para cada producto $p$ mediante $d_{ip}$. De esta forma, la heurística puede comprobar si el vehículo candidato transporta los tipos de productos requeridos y si existe capacidad suficiente en los espacios de carga compatibles.
+
+El trabajo de Gu y colaboradores también advierte que las decisiones de enrutamiento con múltiples commodities no son necesariamente una adaptacion directa del problema de un solo producto. La presencia de productos incompatibles puede modificar las asignaciones a vehículos, las visitas requeridas y la estructura de las restricciones. Por ello, en la presente investigación cada producto debe conservar su identidad durante la planificacion cuando sus propiedades condicionen la asignación o el transporte.
+
+\section{Vehículos con múltiples compartimentos y compatibilidad de carga}
+\label{sec:multi_compartimento}
+
+Los vehículos con múltiples compartimentos permiten transportar diferentes tipos de productos en un mismo vehículo manteniendolos separados. Ostermeier, Henke, Hübner y Wäscher presentan una revisión del problema de enrutamiento con múltiples compartimentos y proponen una tipologia para describir sus variantes. El trabajo destaca que el uso de estos vehículos puede consolidar flujos de productos y reducir la cantidad de vehículos o recorridos necesarios, siempre que las capacidades y condiciones de entrega lo permitan \cite{ostermeier2021}.
+
+La contribución de Ostermeier y colaboradores resulta especialmente útil porque muestra que no existe una única configuración de vehículo con múltiples compartimentos. Entre los atributos que distinguen las variantes se encuentran:
+
+\begin{itemize}
+    \item \textbf{Tamaño de los compartimentos:} puede ser fijo o flexible. En el primer caso, las capacidades de los compartimentos estan predeterminadas; en el segundo, la distribución de la capacidad total entre compartimentos puede formar parte de las decisiones.
+    \item \textbf{Asignación de productos:} puede ser fija, cuando cada tipo de producto solo puede ocupar determinados compartimentos, o flexible, cuando distintos productos pueden asignarse a diferentes compartimentos disponibles.
+    \item \textbf{Compartimentos compartibles:} un compartimento puede admitir un solo tipo de producto o permitir la coexistencia de varios productos compatibles, según las reglas de la aplicación.
+    \item \textbf{Atención de la demanda:} deben definirse las condiciones bajo las cuales la demanda de un cliente puede ser entregada por un único vehículo o repartida entre varios, asi como la posibilidad de realizar más de una visita.
+\end{itemize}
+
+Gu y colaboradores complementan esta clasificación al formalizar restricciones de incompatibilidad entre productos y entre productos y compartimentos. En particular, una mercancia debe asignarse únicamente a compartimentos compatibles, y dos productos incompatibles no pueden compartir el mismo compartimento. La capacidad de cada compartimento debe verificarse de forma independiente, no solamente mediante la capacidad total del vehículo \cite{gu2024}.
+
+Por tanto, una comprobacion basada exclusivamente en la demanda agregada puede aceptar una asignación que no sea realizable físicamente. Para insertar un cliente en una ruta es necesario considerar, como mínimo, la capacidad total disponible, las capacidades individuales de los compartimentos, la compatibilidad de los productos y las reglas de descarga. La carga que permanece en el vehículo cambia después de cada entrega, por lo que la factibilidad debe evaluarse a lo largo del recorrido.
+
+En el problema objeto de estudio, la configuración de los compartimentos y las compatibilidades de los productos deben tratarse como datos del sistema. La heurística no debe asumir que todos los vehículos admiten todos los productos ni que la capacidad total puede redistribuirse libremente entre compartimentos. Esas propiedades solo pueden considerarse flexibles cuando la flota real y las condiciones operativas lo permitan.
+
+\section{Múltiples depósitos y ubicaciones iniciales de los vehículos}
+\label{sec:ubicaciones_iniciales}
+
+Los modelos de enrutamiento suelen representar las rutas a partir de uno o varios depósitos. En el problema de múltiples depósitos, conocido como \textit{Multi-Depot Vehicle Routing Problem} (MDVRP), existen varias ubicaciones habilitadas para el inicio de las operaciones y las rutas se relacionan con esos puntos. Sin embargo, disponer de varios depósitos no equivale necesariamente a que cada vehículo tenga una ubicación inicial individual y diferente.
+
+Afshar-Nadjafi y Afshar-Nadjafi consideran un problema de múltiples depósitos con flota heterogénea, ventanas de tiempo estrictas y tiempos de viaje dependientes del momento de salida. En su modelo, las rutas pueden comenzar y terminar en el mismo depósito o en depósitos diferentes, y se limita la cantidad de vehículos que pueden quedar asignados a cada depósito. La heurística determina el depósito inicial y final de cada ruta atendiendo al costo de enrutamiento y respetando las restricciones del problema \cite{afshar2017}.
+
+Fermín Cueto y colaboradores estudian otra combinación de decisiones: múltiples viajes, ventanas de tiempo, dimensionamiento de flota y localización de depósitos. Su metodología separa las decisiones estratégicas de las operativas. En la etapa estratégica, la localización de los depósitos se aborda mediante un problema $p$-mediana y se determina el tamaño de la flota. En la etapa operativa, los clientes se asignan a depósitos considerando distancia y esfuerzo de enrutamiento, y se construyen rutas que posteriormente se agrupan en viajes de vehículos \cite{fermincueto2021}.
+
+El articulo de Fermín Cueto es relevante tanto por la separación de decisiones estratégicas y operativas como por su tratamiento de los múltiples viajes. No obstante, su problema supone que los depósitos son decisiones de localización y que los vehículos realizan viajes vinculados a dichos depósitos. Esta estructura no debe confundirse con un escenario donde la ubicación inicial concreta de cada vehículo ya es conocida y puede ser diferente de la de los demas.
+
+En la presente investigación, si cada vehículo $k$ tiene una ubicación inicial conocida $o_k$, esta ubicación debe representarse como el origen efectivo de su ruta. El tiempo y costo para alcanzar al primer cliente dependeran de la posición de ese vehículo. Una representacion temporal para el primer cliente $j$ de la ruta puede escribirse como:
+
+\begin{equation}
+S_j \geq \max\{a_j,\,t_k^0+\tau_{o_kj}^{k}\},
+\label{eq:origen_individual}
+\end{equation}
+
+siendo $t_k^0$ el instante en que el vehículo esta disponible para iniciar el recorrido y $\tau_{o_kj}^{k}$ el tiempo de viaje desde su ubicación inicial hasta el cliente. Esta expresion es una adaptacion del modelo al escenario de la investigación, no una ecuacion atribuida literalmente a los dos trabajos revisados.
+
+Por tanto, el problema se relaciona con los modelos de múltiples depósitos, pero requiere representar explícitamente las posiciones iniciales individuales. Si estas ubicaciones no son depósitos operativos desde los que puedan abastecerse o terminar rutas, no deben modelarse automaticamente como depósitos tradicionales.
+
+\section{Múltiples viajes por vehículo y planificacion de rutas}
+\label{sec:multi_trip}
+
+La posibilidad de que un vehículo ejecute varios viajes durante un horizonte de planificacion constituye otra extensión del VRP. En este caso, no basta con construir rutas factibles de manera independiente: también es necesario determinar si pueden programarse sucesivamente en el mismo vehículo sin solapamientos y respetando los horarios de operación.
+
+Fermín Cueto y colaboradores proponen para instancias de mayor tamaño un procedimiento heurístico de tres etapas. Primero construyen rutas considerando la capacidad de los vehículos y las ventanas de tiempo, sin incorporar inicialmente la asignación de múltiples viajes. A continuacion aplican procedimientos de mejora: resuelven un problema de viajante con ventanas de tiempo para ordenar mejor los clientes dentro de cada ruta y utilizan intercambios de clientes entre rutas. Finalmente, emplean una variante de la heurística \textit{first fit decreasing} para asignar las rutas a viajes de vehículos, teniendo en cuenta su duración y la factibilidad temporal de la programación \cite{fermincueto2021}.
+
+Este enfoque muestra una forma de separar la construcción de recorridos de la programación de varios recorridos en un mismo vehículo. En el contexto de esta tesis, su utilidad depende de una decisión de alcance que debe quedar explícita: si cada vehículo puede realizar un único recorrido dentro del horizonte, la etapa de empaquetamiento de viajes no forma parte del problema; si puede realizar varios, será necesario controlar los tiempos de regreso, disponibilidad, preparacion y salida para el siguiente viaje.
+
+Por ello, el trabajo de Fermín Cueto se incorpora como antecedente metodologico para la construcción y mejora de rutas y como referencia para una posible extensión multi-viaje, pero no se utiliza para afirmar que el modelo de la presente investigación incluya necesariamente esa característica.
+
+\section{Costos de combustible y energía en el enrutamiento}
+\label{sec:costos_energeticos}
+
+La distancia recorrida es una medida habitual en los problemas de enrutamiento, pero no siempre representa adecuadamente el costo de operación. Dos vehículos pueden recorrer la misma distancia y generar costos diferentes debido a su tecnología, tipo de combustible, eficiencia, capacidad o carga transportada.
+
+Garside, Ahmad y Muhtazaruddin presentan una revisión de los enfoques de solucion del \textit{Green Vehicle Routing Problem} (GVRP) y sus variantes. El trabajo analiza modelos orientados a reducir el consumo de combustible, las emisiones y otros impactos asociados al transporte, asi como alternativas relacionadas con distintas fuentes energéticas. La revisión identifica, entre los factores relevantes para el consumo, la distancia, la velocidad y el peso de la carga; también destaca el uso de métodos metaheuristicos e hibridos en esta area, incluyendo variantes de la búsqueda de grandes vecindarios \cite{garside2024}.
+
+Para una flota heterogénea, la función objetivo puede incorporar componentes de costo fijo y variable. Una representacion general para la investigación es:
+
+\begin{equation}
+C_{\mathrm{total}}=
+C_{\mathrm{fijo}}+C_{\mathrm{combustible/energía}}+C_{\mathrm{otros\ operativos}}.
+\label{eq:costo_total}
+\end{equation}
+
+El costo energético puede definirse a partir del consumo estimado de cada vehículo en los tramos que recorre. Por ejemplo, si $L_{ij}^{k}$ representa la carga transportada por el vehículo $k$ al recorrer el arco $(i,j)$, una formulación general puede expresarse como:
+
+\begin{equation}
+C_{\mathrm{combustible/energía}}=
+\sum_{k\in K}\sum_{(i,j)\in A}
+ c_{ij}^{k}\bigl(L_{ij}^{k},v_{ij}^{k}\bigr)x_{ij}^{k},
+\label{eq:costo_arcos}
+\end{equation}
+
+\noindent donde $x_{ij}^{k}$ indica si el vehículo $k$ utiliza el arco $(i,j)$, $v_{ij}^{k}$ representa la velocidad o condicion de desplazamiento considerada y $c_{ij}^{k}$ es el costo asociado al tramo. Esta expresion es una estructura general que debe concretarse con los datos y el modelo de consumo disponibles; no constituye una formula específica propuesta por Garside y colaboradores.
+
+La incorporacion del costo energético cambia el criterio de selección de rutas. Una ruta más corta puede no ser la de menor costo si utiliza un vehículo poco eficiente o si mantiene una carga elevada durante una parte importante del recorrido. Asimismo, una asignación de clientes modifica la carga que se transporta en cada arco y, por tanto, puede modificar el consumo estimado.
+
+En consecuencia, la función objetivo de la presente investigación debe reflejar el costo total de transporte y no solamente la distancia. La definicion concreta de sus componentes —costos fijos, combustible, electricidad u otros costos operativos— dependera de la información económica y técnica disponible.
+
+\section{Agrupación de clientes y construcción de rutas}
+\label{sec:agrupación}
+
+La agrupación de clientes cercanos puede utilizarse como una estrategia para organizar la construcción de rutas y reducir desplazamientos innecesarios. Sin embargo, la proximidad geográfica no es suficiente para decidir que clientes deben atenderse conjuntamente. Una agrupación también debe considerar las ventanas de tiempo, las demandas de cada producto, la compatibilidad de la carga, la capacidad de los compartimentos, el tipo de vehículo y su ubicación inicial.
+
+El trabajo de Fermín Cueto y colaboradores aporta un antecedente relacionado con la asignación de clientes a depósitos. En su metodología, esta asignación considera tanto la distancia como el denominado esfuerzo de enrutamiento, en lugar de utilizar exclusivamente la cercanía geográfica. En la construcción de rutas, los autores emplean una heurística de ahorros parametrizada que incorpora penalizaciones relacionadas con los períodos de mayor actividad de las rutas, con el propósito de facilitar su posterior asignación a los viajes de los vehículos \cite{fermincueto2021}.
+
+A partir de estos elementos, la agrupación en la presente investigación puede utilizarse como una fase orientativa de la heurística, pero no debe establecer de forma irreversible la composición de las rutas. Una agrupación inicial debe poder modificarse cuando produzca conflictos temporales, incompatibilidades de productos, exceso de capacidad o un costo energético elevado.
+
+En particular, una insercion de un cliente $i$ en una ruta $r$ debe evaluarse con criterios conjuntos: incremento de costo, factibilidad temporal de la secuencia, capacidad remanente por compartimento, compatibilidad de productos y disponibilidad del vehículo. Esta evaluación evita que una decisión local basada solo en la distancia perjudique la factibilidad global.
+
+\section{Heurísticas y metaheuristicas para el problema de enrutamiento}
+\label{sec:heurísticas}
+
+La combinación de restricciones temporales, flota heterogénea, múltiples productos, compartimentos y costos energéticos genera un espacio de búsqueda complejo. Los métodos exactos permiten obtener soluciones óptimas o cotas de calidad, pero su aplicación puede resultar costosa en instancias de mayor tamaño. Por esta razon, los procedimientos heurísticos y metaheuristicos constituyen alternativas relevantes para obtener soluciones factibles en tiempos razonables.
+
+El trabajo de Afshar-Nadjafi y Afshar-Nadjafi presenta una heurística constructiva organizada en cinco etapas: construcción de una secuencia de clientes, asignación de tipos de vehículos, construcción de rutas, determinacion de los depósitos inicial y final y aplicación de busquedas locales. La secuencia de clientes considera la apertura de las ventanas y la superposicion de intervalos, dando prioridad probabilística a clientes con ventanas más estrechas. Posteriormente se asignan tipos de vehículos considerando las capacidades remanentes; las rutas se construyen incorporando verificaciones de capacidad y tiempo. Por último, se aplican tres operadores: cambio del tipo de vehículo de un cliente, intercambio de posiciones de clientes consecutivos con ventanas superpuestas e intercambio combinado de tipos de vehículo y posiciones en la secuencia \cite{afshar2017}.
+
+Fermín Cueto y colaboradores presentan una arquitectura diferente, basada en la construcción inicial de rutas, su mejora y el empaquetamiento en viajes. Para la construcción utilizan una función de ahorros parametrizada; en la etapa de mejora optimizan el orden de visita dentro de cada ruta y realizan intercambios entre rutas; finalmente, asignan las rutas a vehículos y posiciones de sus calendarios mediante una heurística inspirada en \textit{first fit decreasing} \cite{fermincueto2021}.
+
+Por su parte, la revisión de Ko\c{c} y colaboradores documenta diferentes enfoques heurísticos y metaheurísticos para problemas con flota heterogénea, incluyendo procedimientos de búsqueda tabú y estrategias constructivas o de mejora. La revisión permite observar que la composición de la flota y la asignación de rutas a tipos de vehículos son decisiones centrales de esta familia de problemas \cite{koc2016}. Garside y colaboradores, al revisar el enrutamiento verde, identifican el uso extendido de métodos metaheuristicos e hibridos para los modelos de objetivo único, y destacan las técnicas de búsqueda de grandes vecindarios y sus variantes adaptativas entre los enfoques frecuentes \cite{garside2024}.
+
+A partir de estos trabajos, una arquitectura heurística apropiada para estudiar en esta tesis puede organizarse en las siguientes fases:
+
+\begin{enumerate}
+    \item \textbf{Preparacion de los datos:} representar clientes, demandas por producto, ventanas de tiempo, tiempos de servicio, ubicaciones iniciales, tipos de vehículos, capacidades y compatibilidades.
+    \item \textbf{Generacion de una asignación inicial:} formar grupos preliminares de clientes y asignarlos a vehículos candidatos considerando proximidad, ventanas, capacidad y compatibilidad.
+    \item \textbf{Construcción de rutas factibles:} determinar el orden de visita y comprobar la propagación temporal, las capacidades y el costo de cada tramo.
+    \item \textbf{Evaluación económica:} calcular el costo fijo y los costos variables o energéticos asociados a los vehículos y recorridos.
+    \item \textbf{Mejora de la solucion:} aplicar movimientos de insercion, intercambio o reasignacion de clientes y vehículos, aceptando solamente soluciones que respeten las restricciones duras.
+\end{enumerate}
+
+Esta arquitectura constituye una propuesta de organizacion derivada de la comparación de los trabajos revisados; no implica que la metaheuristica definitiva ya haya sido seleccionada. La elección entre búsqueda local, búsqueda tabú, búsqueda de grandes vecindarios adaptativa u otro enfoque deberá justificarse mediante pruebas experimentales sobre las instancias del problema.
+
+\section{Evaluación experimental de los métodos}
+\label{sec:evaluacion}
+
+La evaluación de una heurística debe considerar tanto la calidad de las soluciones como el esfuerzo computacional necesario para obtenerlas. Los trabajos revisados emplean estrategias de evaluación diferentes. Afshar-Nadjafi y Afshar-Nadjafi generan 180 problemas de prueba y comparan los resultados de su procedimiento con soluciones obtenidas mediante un optimizador matemático; además, ejecutan repetidamente el procedimiento para examinar el comportamiento de las busquedas locales \cite{afshar2017}.
+
+Fermín Cueto y colaboradores estudian instancias reales y también presentan resultados para conjuntos de distintos tamaños. En su evaluación, la heurística de enrutamiento obtiene soluciones óptimas en los casos pequeños considerados y resuelve instancias de hasta 150 clientes en tiempos inferiores a dos minutos en los experimentos descritos. Estos resultados corresponden a la estructura y a los datos de su problema, por lo que no deben interpretarse como una garantía de rendimiento para el problema más rico de esta investigación \cite{fermincueto2021}.
+
+Para evaluar el método propuesto en esta tesis, las instancias deberán describir de forma explícita las ubicaciones iniciales de los vehículos, las ventanas de los clientes, las demandas por producto, la configuración de compartimentos, las capacidades, las incompatibilidades y los parámetros de consumo energético. Cuando se generen instancias sintéticas, deberán documentarse los rangos y distribuciones utilizados para que los experimentos puedan reproducirse.
+
+Entre los indicadores de evaluación se consideran:
+
+\begin{itemize}
+    \item costo total de transporte y sus componentes;
+    \item consumo total de combustible o energía, cuando pueda estimarse;
+    \item distancia y tiempo total de desplazamiento;
+    \item cantidad y tipos de vehículos utilizados;
+    \item número de clientes atendidos y demandas satisfechas;
+    \item cumplimiento de las ventanas de tiempo;
+    \item cumplimiento de las capacidades globales y por compartimento;
+    \item cumplimiento de las restricciones de compatibilidad;
+    \item tiempo de ejecución y estabilidad de los resultados entre ejecuciones.
+\end{itemize}
+
+La comparación entre variantes del algoritmo debe realizarse bajo las mismas instancias, restricciones, función objetivo y condiciones experimentales. Si se comparan soluciones con diferentes cantidades de vehículos o distintas configuraciones de carga, también deben explicitarse los costos asociados a esas decisiones.
+
+\section{Síntesis crítica y oportunidad de investigación}
+\label{sec:sintesis}
+
+Los seis trabajos analizados aportan fundamentos para las principales dimensiones del problema, aunque cada uno aborda una combinación particular de características. Ko\c{c} y colaboradores proporcionan una clasificación amplia de los problemas con flota heterogénea y distinguen la disponibilidad fija de vehículos de los modelos donde se decide la composición de la flota. Afshar-Nadjafi y Afshar-Nadjafi integran ventanas estrictas, flota heterogénea y múltiples depósitos, y proponen una heurística constructiva con tres operadores de búsqueda local. Fermín Cueto y colaboradores muestran cómo separar decisiones de localización y dimensionamiento de flota de las decisiones operativas de construcción y programación de rutas.
+
+En cuanto a la carga, Gu y colaboradores justifican la representacion explícita de múltiples commodities cuando existen incompatibilidades o características que impiden agregarlos en una demanda única. Ostermeier y colaboradores profundizan en las decisiones propias de los vehículos con múltiples compartimentos, como la flexibilidad de los tamaños, la asignación de productos a compartimentos y las condiciones de compartición. Finalmente, Garside y colaboradores muestran la relevancia de incorporar dimensiones energéticas y ambientales, y revisan los enfoques de optimización empleados en el enrutamiento verde.
+
+La comparación también permite identificar aspectos que no deben confundirse. Un modelo de múltiples depósitos no representa necesariamente la ubicación inicial individual y conocida de cada vehículo; un modelo con múltiples compartimentos no implica que todos los compartimentos tengan capacidades flexibles; y un problema multi-viaje no es equivalente a uno en el que cada vehículo realiza una sola ruta. Estas decisiones deben definirse en función de las condiciones reales de la aplicación.
+
+A partir de los documentos consultados, no se identifica en estos seis trabajos una formulación única que integre simultáneamente ventanas de tiempo predefinidas y estrictas, disponibilidad limitada de una flota heterogénea, demandas de múltiples productos, compartimentos con capacidades y compatibilidades propias, ubicaciones iniciales individuales de los vehículos y costos energéticos dependientes del tipo de vehículo y de la carga transportada. Esta observacion se limita al conjunto de trabajos analizados y no constituye una afirmacion de que tal modelo no exista en toda la literatura.
+
+En consecuencia, la oportunidad de investigación consiste en diseñar e implementar una heurística que integre dichas restricciones en un mismo proceso de asignación y construcción de rutas. El objetivo será minimizar el costo total de transporte, garantizando que cada cliente sea atendido de acuerdo con su ventana temporal y que las demandas puedan transportarse respetando las capacidades y compatibilidades de los vehículos.
+
+La contribución esperada radica en la integración operativa de estas características y en el diseño de mecanismos de construcción y mejora que preserven la factibilidad de las soluciones. La calidad del procedimiento deberá determinarse experimentalmente mediante instancias representativas, análisis de sensibilidad y comparaciones entre sus componentes heurísticos.
+

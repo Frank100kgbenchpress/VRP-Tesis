@@ -1,0 +1,49 @@
+\documentclass[12pt,letterpaper,openany]{book}
+
+% --- Codificación e idioma ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+
+% --- Matemáticas ---
+\usepackage{amsmath,amssymb,amsthm}
+
+% --- Figuras y tablas ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+
+% --- Hipervínculos ---
+\usepackage[hidelinks]{hyperref}
+
+% --- Márgenes ---
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+% --- Interlineado (opcional, tesis suelen pedir 1.5) ---
+\usepackage{setspace}
+\onehalfspacing
+
+\title{Título de tu tesis}
+\author{Tu Nombre}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+\include{docs/estadoarte}
+% Cuando agregues más capítulos:
+% \include{docs/introduccion}
+% \include{docs/metodologia}
+
+\backmatter
+% Si usas thebibliography dentro de estadoarte.tex, NO necesitas nada aquí.
+% Si migras a BibTeX, descomenta:
+\bibliographystyle{plain}
+\bibliography{referencias}
+
+\end{document}
